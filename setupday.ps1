@@ -1,4 +1,4 @@
-﻿param($day, [String]$year = "2022")
+param($day, [String]$year = "2022")
 
 if (!(Test-Path "./.session")) {
   throw "No /.session found"
@@ -28,6 +28,6 @@ $session.Cookies.Add($cookie);
 
 Invoke-WebRequest $remoteFileLocation -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
 
-Copy-Item ".\template\template.dib" -Destination ".\$year\day$day\day$day.dib"
+Copy-Item ".\template\template.go" -Destination ".\$year\day$day\day$day.go"
 
 Start-Process "https://adventofcode.com/$year/day/$day"
