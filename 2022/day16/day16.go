@@ -22,6 +22,7 @@ type State struct {
 	time  int
 	score int
 	flow  int
+	path  []int
 }
 
 func main() {
@@ -60,8 +61,24 @@ func main() {
 	}
 	state := NewState(&valves, 1, 30, start)
 
-	_, rec := state.Next(valves, getShortestPaths(valves), 0)
+	_, rec, _ := state.Next(valves, getShortestPaths(valves), 0, 9999999)
 	fmt.Printf("Part 1: %d\n", rec)
+
+	max := 999999
+	result := 0
+	for i := 0; i < 10; i++ { // 🧙 number, take the top results and take the best of them- Still runs surprisingly fast
+		state = NewState(&valves, 1, 26, start)
+		_, rec, rs := state.Next(valves, getShortestPaths(valves), 0, max)
+
+		state = NewState(&valves, 1, 26, start)
+		state.open = rs.open
+		_, rec2, _ := state.Next(valves, getShortestPaths(valves), 0, 999999)
+		if rec+rec2 > result {
+			result = rec + rec2
+		}
+		max = rec
+	}
+	fmt.Printf("Part 2: %d\n", result)
 
 }
 
@@ -76,6 +93,7 @@ func NewState(valves *[]Valve, pos, time, start int) State {
 		pos:   pos_list,
 		time:  time,
 		score: 0,
+		path:  []int{start},
 	}
 }
 
@@ -129,19 +147,23 @@ func (state State) Copy() State {
 		time:  state.time,
 		score: state.score,
 		flow:  state.flow,
+		path:  make([]int, len(state.path)),
 	}
 	copy(s.open, state.open)
 	copy(s.pos, state.pos)
+	copy(s.path, state.path)
 	return s
 }
 
-func (state State) Next(valves []Valve, sp [][]int, record int) ([]State, int) {
-	if state.score > record {
+func (state State) Next(valves []Valve, sp [][]int, record, max int) ([]State, int, State) {
+	var rec_state State
+	if state.score > record && state.score < max {
 		record = state.score
+		rec_state = state.Copy()
 	}
 
 	if state.time <= 0 {
-		return []State{}, state.score
+		return []State{}, state.score, rec_state
 	}
 
 	states := []State{}
@@ -153,12 +175,14 @@ func (state State) Next(valves []Valve, sp [][]int, record int) ([]State, int) {
 			s := state.Copy()
 			dist := sp[state.pos[0]][i] + 1
 			s.pos[0] = i
+			s.path = append(s.path, i)
 			s.open[i] = true
 			s.time -= dist
 			s.score += s.flow * dist
 			s.flow += valves[i].flow_rate
-			if s.score > record && s.time >= 0 {
+			if s.score > record && s.time >= 0 && s.score < max {
 				record = s.score
+				rec_state = s.Copy()
 			}
 			states = append(states, s)
 		}
@@ -166,16 +190,17 @@ func (state State) Next(valves []Valve, sp [][]int, record int) ([]State, int) {
 
 	if nothing_to_open {
 		state.score += state.flow * state.time
-		return []State{}, state.score
+		return []State{}, state.score, state
 	}
 
 	// Get next states
 	new_states := []State{}
 	for len(states) > 0 {
 		for i := range states {
-			s, rec := states[i].Next(valves, sp, record)
-			if rec > record {
+			s, rec, rs := states[i].Next(valves, sp, record, max)
+			if rec > record && rec < max {
 				record = rec
+				rec_state = rs
 			}
 			new_states = append(new_states, s...)
 		}
@@ -184,5 +209,5 @@ func (state State) Next(valves []Valve, sp [][]int, record int) ([]State, int) {
 		new_states = []State{}
 	}
 
-	return new_states, record
+	return new_states, record, rec_state
 }
