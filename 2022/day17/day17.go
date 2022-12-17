@@ -55,28 +55,28 @@ func main() {
 		block:         -1,
 		step:          0,
 	}
-	game.SpawnBlock()
+	game.NextBlock()
 	part2hash := game.Hash()
 	old_hash := game.Hash()
 	fallenBlocks := 0
 	diff_hashmap := make(map[uint64]int)
 	next_hashmap := make(map[uint64]uint64)
 	for fallenBlocks < 2022 {
-		old := game.highest_point
-		if game.Next() {
+		old_highest_point := game.highest_point
+		if game.NextState() {
 			fallenBlocks++
 			gameHash := game.Hash()
 
-			hashed, ok := diff_hashmap[gameHash]
-			hashed2, ok2 := next_hashmap[old_hash]
-			if ok2 && hashed2 != gameHash {
+			hashed_diff, ok := diff_hashmap[gameHash]
+			hashed_next_hash, ok2 := next_hashmap[old_hash]
+			if ok2 && hashed_next_hash != gameHash {
 				panic("Hash function failed")
 			}
 
 			next_hashmap[old_hash] = gameHash
 			old_hash = gameHash
-			diff := game.highest_point - old
-			if ok && diff != hashed {
+			diff := game.highest_point - old_highest_point
+			if ok && diff != hashed_diff {
 				panic("Hash function failed")
 			} else {
 				diff_hashmap[gameHash] = diff
@@ -114,7 +114,7 @@ func main() {
 	fmt.Printf("Part 2: %d\n", high+1)
 }
 
-func (game *Game) Next() bool {
+func (game *Game) NextState() bool {
 	//Apply jet burst (left/right)
 	if game.jet_pattern[game.step%(len(game.jet_pattern))] {
 		//left
@@ -143,7 +143,7 @@ func (game *Game) Next() bool {
 				}
 			}
 		}
-		game.SpawnBlock()
+		game.NextBlock()
 		game.step++
 		return true
 	}
@@ -165,7 +165,7 @@ func (game *Game) CanMove(x, y int) bool {
 	return true
 }
 
-func (game *Game) SpawnBlock() {
+func (game *Game) NextBlock() {
 	game.block = (game.block + 1) % (len(*game.blocks))
 	for len(game.field) < game.highest_point+len((*game.blocks)[game.block])+4 {
 		game.field = append(game.field, make([]bool, 7))
