@@ -69,38 +69,38 @@ func RecSolutionSearch(name, searchName string, solution int, nodeMap *map[strin
 		return solution
 	}
 	if (*containsMap)[(*nodeMap)[name].right] && (*containsMap)[(*nodeMap)[name].left] {
-		return -1
+		panic("Both sides contain searchName")
 	}
 	switch (*nodeMap)[name].op {
 	case Plus:
-		if !(*containsMap)[(*nodeMap)[name].left] {
-			return RecSolutionSearch((*nodeMap)[name].right, searchName, solution-GetNodeValue((*nodeMap)[name].left, nodeMap), nodeMap, containsMap)
+		if (*containsMap)[(*nodeMap)[name].right] {
+			return RecSolutionSearch((*nodeMap)[name].right, searchName, solution-GetNodeValue((*nodeMap)[name].left, nodeMap), nodeMap, containsMap) // solution = left + x
 		} else {
-			return RecSolutionSearch((*nodeMap)[name].left, searchName, solution-GetNodeValue((*nodeMap)[name].right, nodeMap), nodeMap, containsMap)
+			return RecSolutionSearch((*nodeMap)[name].left, searchName, solution-GetNodeValue((*nodeMap)[name].right, nodeMap), nodeMap, containsMap) // solution = x + right
 		}
 	case Minus:
-		if !(*containsMap)[(*nodeMap)[name].left] {
-			return RecSolutionSearch((*nodeMap)[name].right, searchName, GetNodeValue((*nodeMap)[name].left, nodeMap)-solution, nodeMap, containsMap)
+		if (*containsMap)[(*nodeMap)[name].right] {
+			return RecSolutionSearch((*nodeMap)[name].right, searchName, GetNodeValue((*nodeMap)[name].left, nodeMap)-solution, nodeMap, containsMap) // solution = x - right
 		} else {
-			return RecSolutionSearch((*nodeMap)[name].left, searchName, GetNodeValue((*nodeMap)[name].right, nodeMap)+solution, nodeMap, containsMap)
+			return RecSolutionSearch((*nodeMap)[name].left, searchName, GetNodeValue((*nodeMap)[name].right, nodeMap)+solution, nodeMap, containsMap) // solution = left - x
 		}
 	case Multiply:
-		if !(*containsMap)[(*nodeMap)[name].left] {
-			return RecSolutionSearch((*nodeMap)[name].right, searchName, solution/GetNodeValue((*nodeMap)[name].left, nodeMap), nodeMap, containsMap)
+		if (*containsMap)[(*nodeMap)[name].right] {
+			return RecSolutionSearch((*nodeMap)[name].right, searchName, solution/GetNodeValue((*nodeMap)[name].left, nodeMap), nodeMap, containsMap) // solution = left * x
 		} else {
-			return RecSolutionSearch((*nodeMap)[name].left, searchName, solution/GetNodeValue((*nodeMap)[name].right, nodeMap), nodeMap, containsMap)
+			return RecSolutionSearch((*nodeMap)[name].left, searchName, solution/GetNodeValue((*nodeMap)[name].right, nodeMap), nodeMap, containsMap) // solution = x * right
 		}
 	case Divide:
-		if !(*containsMap)[(*nodeMap)[name].left] {
-			return RecSolutionSearch((*nodeMap)[name].right, searchName, GetNodeValue((*nodeMap)[name].left, nodeMap)/solution, nodeMap, containsMap)
+		if (*containsMap)[(*nodeMap)[name].right] {
+			return RecSolutionSearch((*nodeMap)[name].right, searchName, GetNodeValue((*nodeMap)[name].left, nodeMap)/solution, nodeMap, containsMap) // solution = left / x
 		} else {
-			return RecSolutionSearch((*nodeMap)[name].left, searchName, GetNodeValue((*nodeMap)[name].right, nodeMap)*solution, nodeMap, containsMap)
+			return RecSolutionSearch((*nodeMap)[name].left, searchName, GetNodeValue((*nodeMap)[name].right, nodeMap)*solution, nodeMap, containsMap) // solution = x / right
 		}
 	case Number:
-		return -1
+		panic("Number node in RecSolutionSearch")
 	}
 
-	return -1
+	panic("Unknown operator")
 }
 
 func GetNodeValue(name string, nodeMap *map[string]Node) int {
